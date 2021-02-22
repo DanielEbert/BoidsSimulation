@@ -1,0 +1,92 @@
+
+# TODO:
+- Environment (Planets)
+    -procedually generated?
+- Possible Playable Classes:
+    - Big/Slowly moving/rotating Ship (Third Person); Fast/Agile/Small Ships (First person); Turret (First Person)
+- machine gun turret
+    -  turret but instead of targeting boids where they are instantly death,
+      the turret targets big ships, is not instant and has a much higher fire rate
+
+- boids are instant death or after delay?
+delay is harder, requires timetodeath system, bullet following boid
+we might use some trajectory predictions, but boid movement jumps
+and is not continuous so we might miss boid.
+might make boid a physics entity and that way turret bullet boid can find enemy boids
+but thats very bad performance if we have a lot of boids
+        - this might improve if havoc physics releases
+- can we make bullet follow boid? have a job system that makes object move towards
+a target entity, when next movestep would collide with boid, we destroy boid?
+A: decided to do instant (or pretty much instant, tiny animation) to not cluster everything
+        which might look cleaner in the end
+
+- find best way to check when boids/physicsbodys hit something.
+  if we check positions after the physicsbodys have been moved already
+  we might be able to get the position from before movement was applied
+  from A) cache previous frame position B) calc from velocity
+  but that is not a total fix because 2 fast moving objects might
+  still not collide with each other even though in real life they would
+  because movement and collision checking is not continuous
+  in unity docs for standard rigidbody they wrote that continous
+  checking is very expensive. maybe we dont need it. its only problematic
+  with small surfaces like a wing of a plane or sth where it might not detect
+        - raycast check is current (doesnt fix everything) solution
+
+- will my game be more action focused or strategy? long range would allow for more strategy
+
+- ships later on (should be) cylinder form, so that boids object dodge works better
+
+
+# Boid AI:
+- stay with current stuff (fly away if to close), BUT: if we find a new and better target in front of us 
+    (while we fly away) we stop the "retreating to approach again" and go for the new plane
+
+
+- different target types or different modes
+    - Types: 1) auto (target closest enemy), 2) specific position, 3) dynamic (based on entity position)
+    - Modi: 1) Normal, 2) retreating to approach again
+
+    - modi is kind of included in the types
+- while "retreating to approach again", if another target would be better to approach we should go for that one
+- if boids have collider, the bullets they shoot will his the boid that shot that bullet. ways to fix:
+    A) spawn bullet a little bit ahead (based on movement this frame + 1/2 of ship length if we are in centre)
+    B) bullet ignores the collider that it was shot from (dont know how to do this)
+    C) bullet ignores the faction of the boid that shot (this means friendly fire is off)
+
+- how to choose target?:
+    - considerations:
+    distance to target: also if it is to close, even if we turn we woudnt get it so we shoud weight targets that are very close very low
+                              and if the result is to target an enemy very close behind, we should "retreating to approach again" to avoid circle or "hopping"
+    rotation to target
+- many small ships against 1 big ship looked better in early testing compared to many small ships vs many small ships (but might also be cause of bad AI)
+
+possible states in a 1v1:
+- Ps fly towards each other
+    - shoot if range < 75
+    - "retreating to approach again" if range < 25
+- A chases B, B has A in back
+    - 
+
+- we can "fix" rotating around object with either:
+    - A) increase rotation speed
+    - B) bigger target diameter
+    - C) bigger obstacle aversion distance
+        -> A) and C) are easy to change. will maybe be A) because B) is related to attack range, and "retreating to approach again"
+            - because B) has to be dynamic, we have to set A) and C) so that permanent rotating doesnt happen
+              to do that we have to calculate/redo for how much a boid rotates
+
+# Physics Collision Masks:
+4- Ally Boid
+8 - Enemy Boid
+16 - Boid Obstacles
+
+
+# Glossary:
+## NativeDisableParallelForRestriction:
+You can safely read from ComponentDataFromEntity in any Job, but by default, you cannot write to components in the container in parallel
+Jobs (including IJobForEach<T0> and IJobChunk). If you know that two instances of a parallel Job can never write to the same index in the
+container, you can disable the restriction on parallel writing by adding NativeDisableParallelForRestrictionAttribute to the
+ComponentDataFromEntity field definition in the Job struct.
+
+## Raycast:
+- raycasts that are fully inside an object still detect the object
