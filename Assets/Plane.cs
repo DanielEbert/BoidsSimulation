@@ -280,7 +280,7 @@ public class Plane : MonoBehaviour {
     // maybe im also just stupid and i have to think a lot about a STUPIDLY EASY WAY to do this task.
 
     void OnDrawGizmos() {
-        if (!UnityEditor.EditorApplication.isPlaying) return;
+        //if (!UnityEditor.EditorApplication.isPlaying) return;
         if (!showDebugInfo) return;
         Gizmos.DrawLine(transform.position, targetPos);
     }
